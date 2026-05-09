@@ -6,11 +6,21 @@ import hashlib
 from cryptography.hazmat.primitives.asymmetric import dh
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from tkinter import simpledialog
 
 def run_app():
-    root = tk.Tk()
-    root.title("Server Chat")
     
+    root = tk.Tk()
+    root.withdraw()
+
+    # Ask the user for the port
+    PORT = simpledialog.askinteger("Input", "Enter Port (e.g. 65432):", parent=root)
+    if not PORT: return
+    root.deiconify()
+    
+    root.title(f"Server Chat - Port {PORT}")
+    
+
     chat_box = tk.Text(root, width=50, height=15, state=tk.NORMAL)
     chat_box.pack(padx=10, pady=10)
     chat_box.insert(tk.END, "[System] Waiting for client to connect...\n")
@@ -53,6 +63,7 @@ def run_app():
             nonce = os.urandom(12)
             ciphertext = session["aes"].encrypt(nonce, text.encode(), None)
             session["conn"].sendall(nonce + ciphertext)
+            print(nonce + ciphertext)
             msg_input.delete(0, tk.END)
 
     msg_input.bind("<Return>", send)
@@ -60,7 +71,7 @@ def run_app():
     def setup_network():
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.bind(('127.0.0.1', 65432))
+            s.bind(('0.0.0.0', PORT)) # '0.0.0.0' allows connections from other computers
             s.listen(1)
             
             conn, addr = s.accept()
@@ -92,8 +103,7 @@ def run_app():
 
     t = threading.Thread(target=setup_network)
     t.daemon = True
-    t.start()
-    
+    t.start()   
     root.mainloop()
 
 if __name__ == "__main__":

@@ -7,9 +7,21 @@ import time
 from cryptography.hazmat.primitives.asymmetric import dh
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
+from tkinter import simpledialog
 
 def run_app():
+
     root = tk.Tk()
+    root.withdraw()
+
+    # Ask for both IP and Port
+    SERVER_IP = simpledialog.askstring("Input", "Enter Server IP (Localhost = 127.0.0.1):", parent=root)
+    PORT = simpledialog.askinteger("Input", "Enter Port:", parent=root)
+    if not SERVER_IP or not PORT: return
+    root.deiconify()
+    
+    root.title(f"Client Chat - Connecting to {SERVER_IP}")
+
     root.title("Client Chat")
     
     chat_box = tk.Text(root, width=50, height=15, state=tk.NORMAL)
@@ -60,12 +72,11 @@ def run_app():
 
     def setup_network():
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        
         while True:
             try:
-                s.connect(('127.0.0.1', 65432))
-                break 
-            except ConnectionRefusedError:
+                s.connect((SERVER_IP, PORT))
+                break
+            except:
                 time.sleep(2) 
                 
         session["conn"] = s
